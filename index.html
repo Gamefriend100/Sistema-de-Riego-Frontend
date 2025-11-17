@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema ESP32 · Humedad</title>
+  <title>Sistema ESP32 · Humedad, Temperatura y Nivel de Agua</title>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -60,6 +60,10 @@
       padding: 20px;
       border-radius: 10px;
     }
+
+    canvas {
+      max-width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -76,10 +80,15 @@
     </a>
   </div>
 
-  <!-- GRÁFICA -->
+  <!-- GRÁFICAS -->
   <div id="chartContainer">
-    <h2>Gráfica de humedad</h2>
-    <canvas id="chart"></canvas>
+    <h2>Gráfica de Humedad y Temperatura</h2>
+    <canvas id="chartHT"></canvas>
+  </div>
+
+  <div id="chartContainer">
+    <h2>Gráfica de Nivel de Agua</h2>
+    <canvas id="chartNA"></canvas>
   </div>
 
   <!-- TABLA -->
@@ -87,30 +96,44 @@
     <thead>
       <tr>
         <th>Humedad (%)</th>
+        <th>Temperatura (°C)</th>
+        <th>Nivel de Agua (%)</th>
         <th>Fecha</th>
       </tr>
     </thead>
     <tbody id="tablaDatos">
-      <tr><td colspan="2">Cargando...</td></tr>
+      <tr><td colspan="4">Cargando...</td></tr>
     </tbody>
   </table>
 
   <script>
-
     const API = "https://sistema-de-riego-w2uh.onrender.com/datos";
 
-    let ctx = document.getElementById("chart").getContext("2d");
-
-    let chart = new Chart(ctx, {
+    // Gráfica Humedad + Temperatura
+    const ctxHT = document.getElementById("chartHT").getContext("2d");
+    const chartHT = new Chart(ctxHT, {
       type: "line",
       data: {
         labels: [],
-        datasets: [{
-          label: "Humedad (%)",
-          data: [],
-          borderWidth: 2
-        }]
-      }
+        datasets: [
+          { label: "Humedad (%)", data: [], borderColor: "blue", fill: false },
+          { label: "Temperatura (°C)", data: [], borderColor: "red", fill: false }
+        ]
+      },
+      options: { responsive: true }
+    });
+
+    // Gráfica Nivel de Agua
+    const ctxNA = document.getElementById("chartNA").getContext("2d");
+    const chartNA = new Chart(ctxNA, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          { label: "Nivel de Agua (%)", data: [], borderColor: "green", fill: false }
+        ]
+      },
+      options: { responsive: true }
     });
 
     async function cargarDatos() {
@@ -121,20 +144,28 @@
         // ==== Actualizar tabla ====
         const tabla = document.getElementById("tablaDatos");
         tabla.innerHTML = "";
-
         datos.forEach(d => {
           tabla.innerHTML += `
             <tr>
               <td>${d.humedad ?? "-"}</td>
+              <td>${d.temperatura ?? "-"}</td>
+              <td>${d.nivelAgua ?? "-"}</td>
               <td>${new Date(d.fecha).toLocaleString()}</td>
             </tr>
           `;
         });
 
-        // ==== Actualizar gráfica ====
-        chart.data.labels = datos.map(d => new Date(d.fecha).toLocaleTimeString());
-        chart.data.datasets[0].data = datos.map(d => d.humedad);
-        chart.update();
+        // ==== Actualizar gráfico Humedad + Temperatura ====
+        const labels = datos.map(d => new Date(d.fecha).toLocaleTimeString());
+        chartHT.data.labels = labels;
+        chartHT.data.datasets[0].data = datos.map(d => d.humedad);
+        chartHT.data.datasets[1].data = datos.map(d => d.temperatura);
+        chartHT.update();
+
+        // ==== Actualizar gráfico Nivel de Agua ====
+        chartNA.data.labels = labels;
+        chartNA.data.datasets[0].data = datos.map(d => d.nivelAgua);
+        chartNA.update();
 
       } catch (err) {
         console.error(err);
@@ -142,9 +173,9 @@
     }
 
     cargarDatos();
-    setInterval(cargarDatos, 5000);
-
+    setInterval(cargarDatos, 5000); // actualizar cada 5 segundos
   </script>
 
 </body>
 </html>
+
