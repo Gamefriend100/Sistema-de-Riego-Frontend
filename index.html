@@ -2,19 +2,20 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema ESP32 · Gráficos Avanzados</title>
+  <title>Sistema ESP32 · Gráficos Vegetación</title>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f1f1f1;
+      background: #d4edda; /* verde suave de vegetación */
       padding: 25px;
     }
 
     h1, h2 {
       text-align: center;
+      color: #155724; /* verde oscuro para contraste */
     }
 
     .btn {
@@ -62,6 +63,7 @@
       width: 100%;
       border-collapse: collapse;
       background: white;
+      margin-top: 20px;
     }
 
     th, td {
@@ -71,14 +73,18 @@
     }
 
     th {
-      background: #007bff;
+      background: #28a745; /* verde fuerte para cabecera */
       color: white;
+    }
+
+    td {
+      color: #155724; /* texto verde oscuro */
     }
   </style>
 </head>
 <body>
 
-  <h1>Sistema de Riego Inteligente</h1>
+  <h1>Datos del ESP32 · Vegetación</h1>
 
   <div>
     <a href="https://sistema-de-riego-w2uh.onrender.com/export/excel">
@@ -168,8 +174,8 @@
         const res = await fetch(API);
         const datos = await res.json();
 
-        // Solo últimos 50 registros
-        const ultimosDatos = datos.slice(-50);
+        // Solo últimos 20 registros
+        const ultimosDatos = datos.slice(-20);
 
         // ==== Actualizar tabla ====
         const tabla = document.getElementById("tablaDatos");
