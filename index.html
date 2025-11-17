@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema ESP32 · Humedad</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f1f1f1;
+      padding: 25px;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn {
+      padding: 10px 15px;
+      margin-right: 10px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .excel {
+      background: #28a745;
+    }
+
+    .csv {
+      background: #17a2b8;
+    }
+
+    #chartContainer {
+      width: 100%;
+      max-width: 900px;
+      margin: 30px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Datos del ESP32 desde MongoDB</h1>
+
+  <div>
+    <a href="https://sistema-de-riego-w2uh.onrender.com/export/excel">
+      <button class="btn excel">📘 Descargar Excel</button>
+    </a>
+
+    <a href="https://sistema-de-riego-w2uh.onrender.com/export/csv">
+      <button class="btn csv">📄 Descargar CSV</button>
+    </a>
+  </div>
+
+  <!-- GRÁFICA -->
+  <div id="chartContainer">
+    <h2>Gráfica de humedad</h2>
+    <canvas id="chart"></canvas>
+  </div>
+
+  <!-- TABLA -->
+  <table>
+    <thead>
+      <tr>
+        <th>Humedad (%)</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+    <tbody id="tablaDatos">
+      <tr><td colspan="2">Cargando...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+
+    const API = "https://sistema-de-riego-w2uh.onrender.com/datos";
+
+    let ctx = document.getElementById("chart").getContext("2d");
+
+    let chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [{
+          label: "Humedad (%)",
+          data: [],
+          borderWidth: 2
+        }]
+      }
+    });
+
+    async function cargarDatos() {
+      try {
+        const res = await fetch(API);
+        const datos = await res.json();
+
+        // ==== Actualizar tabla ====
+        const tabla = document.getElementById("tablaDatos");
+        tabla.innerHTML = "";
+
+        datos.forEach(d => {
+          tabla.innerHTML += `
+            <tr>
+              <td>${d.humedad ?? "-"}</td>
+              <td>${new Date(d.fecha).toLocaleString()}</td>
+            </tr>
+          `;
+        });
+
+        // ==== Actualizar gráfica ====
+        chart.data.labels = datos.map(d => new Date(d.fecha).toLocaleTimeString());
+        chart.data.datasets[0].data = datos.map(d => d.humedad);
+        chart.update();
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    cargarDatos();
+    setInterval(cargarDatos, 5000);
+
+  </script>
+
+</body>
+</html>
