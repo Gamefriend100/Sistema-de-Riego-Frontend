@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema ESP32 · Humedad, Temperatura y Nivel de Agua</title>
+  <title>Sistema ESP32 · Gráficos Avanzados</title>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -38,8 +38,8 @@
     /* Contenedor para los gráficos */
     #charts {
       display: flex;
-      justify-content: space-around;
       flex-wrap: wrap;
+      justify-content: space-around;
       margin-top: 30px;
       margin-bottom: 30px;
     }
@@ -48,7 +48,7 @@
       background: white;
       padding: 20px;
       border-radius: 10px;
-      width: 45%; /* cada gráfico ocupa 45% del ancho */
+      width: 45%; /* 2 por fila */
       height: 300px;
       margin-bottom: 20px;
     }
@@ -78,7 +78,7 @@
 </head>
 <body>
 
-  <h1>Datos del ESP32 desde MongoDB</h1>
+  <h1>Sistema de Riego Inteligente</h1>
 
   <div>
     <a href="https://sistema-de-riego-w2uh.onrender.com/export/excel">
@@ -90,16 +90,26 @@
     </a>
   </div>
 
-  <!-- Contenedor de gráficos lado a lado -->
+  <!-- Contenedor de gráficos -->
   <div id="charts">
     <div class="chart-box">
-      <h2>Humedad y Temperatura</h2>
+      <h2>Humedad del Suelo</h2>
+      <canvas id="chartHumedad"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <h2>Humedad + Temperatura</h2>
       <canvas id="chartHT"></canvas>
     </div>
 
     <div class="chart-box">
       <h2>Nivel de Agua</h2>
-      <canvas id="chartNA"></canvas>
+      <canvas id="chartAgua"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <h2>Combinado (Humedad + Temp + Agua)</h2>
+      <canvas id="chartCombinado"></canvas>
     </div>
   </div>
 
@@ -121,30 +131,35 @@
   <script>
     const API = "https://sistema-de-riego-w2uh.onrender.com/datos";
 
-    // Gráfica Humedad + Temperatura
-    const ctxHT = document.getElementById("chartHT").getContext("2d");
-    const chartHT = new Chart(ctxHT, {
+    // Crear gráficos
+    const chartHumedad = new Chart(document.getElementById("chartHumedad").getContext("2d"), {
       type: "line",
-      data: {
-        labels: [],
-        datasets: [
-          { label: "Humedad (%)", data: [], borderColor: "blue", fill: false },
-          { label: "Temperatura (°C)", data: [], borderColor: "red", fill: false }
-        ]
-      },
+      data: { labels: [], datasets: [{ label: "Humedad (%)", data: [], borderColor: "blue", fill: false }] },
       options: { responsive: true, maintainAspectRatio: false }
     });
 
-    // Gráfica Nivel de Agua
-    const ctxNA = document.getElementById("chartNA").getContext("2d");
-    const chartNA = new Chart(ctxNA, {
+    const chartHT = new Chart(document.getElementById("chartHT").getContext("2d"), {
       type: "line",
-      data: {
-        labels: [],
-        datasets: [
-          { label: "Nivel de Agua (%)", data: [], borderColor: "green", fill: false }
-        ]
-      },
+      data: { labels: [], datasets: [
+        { label: "Humedad (%)", data: [], borderColor: "blue", fill: false },
+        { label: "Temperatura (°C)", data: [], borderColor: "red", fill: false }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    const chartAgua = new Chart(document.getElementById("chartAgua").getContext("2d"), {
+      type: "line",
+      data: { labels: [], datasets: [{ label: "Nivel de Agua (%)", data: [], borderColor: "green", fill: false }] },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    const chartCombinado = new Chart(document.getElementById("chartCombinado").getContext("2d"), {
+      type: "line",
+      data: { labels: [], datasets: [
+        { label: "Humedad (%)", data: [], borderColor: "blue", fill: false },
+        { label: "Temperatura (°C)", data: [], borderColor: "red", fill: false },
+        { label: "Nivel de Agua (%)", data: [], borderColor: "green", fill: false }
+      ]},
       options: { responsive: true, maintainAspectRatio: false }
     });
 
@@ -153,7 +168,7 @@
         const res = await fetch(API);
         const datos = await res.json();
 
-        // Solo usar los últimos 50 registros
+        // Solo últimos 50 registros
         const ultimosDatos = datos.slice(-50);
 
         // ==== Actualizar tabla ====
@@ -170,17 +185,30 @@
           `;
         });
 
-        // ==== Actualizar gráfico Humedad + Temperatura ====
         const labels = ultimosDatos.map(d => new Date(d.fecha).toLocaleTimeString());
+
+        // === Humedad solo ===
+        chartHumedad.data.labels = labels;
+        chartHumedad.data.datasets[0].data = ultimosDatos.map(d => d.humedad);
+        chartHumedad.update();
+
+        // === Humedad + Temperatura ===
         chartHT.data.labels = labels;
         chartHT.data.datasets[0].data = ultimosDatos.map(d => d.humedad);
         chartHT.data.datasets[1].data = ultimosDatos.map(d => d.temperatura);
         chartHT.update();
 
-        // ==== Actualizar gráfico Nivel de Agua ====
-        chartNA.data.labels = labels;
-        chartNA.data.datasets[0].data = ultimosDatos.map(d => d.nivelAgua);
-        chartNA.update();
+        // === Nivel de Agua ===
+        chartAgua.data.labels = labels;
+        chartAgua.data.datasets[0].data = ultimosDatos.map(d => d.nivelAgua);
+        chartAgua.update();
+
+        // === Combinado ===
+        chartCombinado.data.labels = labels;
+        chartCombinado.data.datasets[0].data = ultimosDatos.map(d => d.humedad);
+        chartCombinado.data.datasets[1].data = ultimosDatos.map(d => d.temperatura);
+        chartCombinado.data.datasets[2].data = ultimosDatos.map(d => d.nivelAgua);
+        chartCombinado.update();
 
       } catch (err) {
         console.error(err);
@@ -193,4 +221,3 @@
 
 </body>
 </html>
-
