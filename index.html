@@ -17,23 +17,6 @@
       text-align: center;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background: white;
-    }
-
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-    }
-
-    th {
-      background: #007bff;
-      color: white;
-    }
-
     .btn {
       padding: 10px 15px;
       margin-right: 10px;
@@ -52,17 +35,42 @@
       background: #17a2b8;
     }
 
-    #chartContainer {
-      width: 100%;
-      max-width: 900px;
-      margin: 30px auto;
+    /* Contenedor para los gráficos */
+    #charts {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-top: 30px;
+      margin-bottom: 30px;
+    }
+
+    .chart-box {
       background: white;
       padding: 20px;
       border-radius: 10px;
+      width: 45%; /* cada gráfico ocupa 45% del ancho */
+      margin-bottom: 20px;
     }
 
     canvas {
       max-width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #007bff;
+      color: white;
     }
   </style>
 </head>
@@ -80,18 +88,20 @@
     </a>
   </div>
 
-  <!-- GRÁFICAS -->
-  <div id="chartContainer">
-    <h2>Gráfica de Humedad y Temperatura</h2>
-    <canvas id="chartHT"></canvas>
+  <!-- Contenedor de gráficos lado a lado -->
+  <div id="charts">
+    <div class="chart-box">
+      <h2>Humedad y Temperatura</h2>
+      <canvas id="chartHT"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <h2>Nivel de Agua</h2>
+      <canvas id="chartNA"></canvas>
+    </div>
   </div>
 
-  <div id="chartContainer">
-    <h2>Gráfica de Nivel de Agua</h2>
-    <canvas id="chartNA"></canvas>
-  </div>
-
-  <!-- TABLA -->
+  <!-- Tabla de datos -->
   <table>
     <thead>
       <tr>
@@ -120,7 +130,7 @@
           { label: "Temperatura (°C)", data: [], borderColor: "red", fill: false }
         ]
       },
-      options: { responsive: true }
+      options: { responsive: true, maintainAspectRatio: false }
     });
 
     // Gráfica Nivel de Agua
@@ -133,7 +143,7 @@
           { label: "Nivel de Agua (%)", data: [], borderColor: "green", fill: false }
         ]
       },
-      options: { responsive: true }
+      options: { responsive: true, maintainAspectRatio: false }
     });
 
     async function cargarDatos() {
