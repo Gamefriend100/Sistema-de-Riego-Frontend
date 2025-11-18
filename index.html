@@ -9,15 +9,22 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #d4edda;
       padding: 15px;
       margin: 0;
+
+      /* Imagen de fondo de plantas y naturaleza */
+      background-image: url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1470&q=80'); 
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: #155724;
     }
 
     h1, h2 {
       text-align: center;
-      color: #155724;
       margin: 5px 0;
+      text-shadow: 1px 1px 2px #ffffffaa; /* sombra para resaltar sobre la imagen */
     }
 
     .btn {
@@ -42,7 +49,7 @@
     }
 
     .chart-box {
-      background: white;
+      background: rgba(255, 255, 255, 0.85); /* fondo semi-transparente */
       padding: 10px;
       border-radius: 10px;
       width: 250px;
@@ -68,7 +75,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
+      background: rgba(255,255,255,0.85);
       font-size: 14px;
       margin-bottom: 20px;
     }
@@ -153,7 +160,7 @@
 <script>
 const API = "https://sistema-de-riego-w2uh.onrender.com/datos";
 
-// Plugin para mostrar porcentaje centrado dentro del canvas sin salirse
+// Plugin para mostrar porcentaje centrado
 const centerTextPlugin = {
   id: 'centerText',
   afterDraw(chart) {
@@ -165,7 +172,6 @@ const centerTextPlugin = {
     ctx.fillStyle = '#000';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    // Centrar dentro del chartArea para que no salga por título
     const centerX = (chartArea.left + chartArea.right) / 2;
     const centerY = (chartArea.top + chartArea.bottom) / 2;
     ctx.fillText(value + '%', centerX, centerY);
@@ -175,20 +181,8 @@ const centerTextPlugin = {
 
 const createGauge = (ctx, color) => new Chart(ctx, {
   type: 'doughnut',
-  data: {
-    labels: ["Valor", ""],
-    datasets: [{
-      data: [0, 100],
-      backgroundColor: [color, "#eee"],
-      borderWidth: 1
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '70%',
-    plugins: { legend: { display: false }, tooltip: { enabled: false }, centerText: true }
-  },
+  data: { labels: ["Valor", ""], datasets: [{ data: [0, 100], backgroundColor: [color, "#eee"], borderWidth: 1 }] },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false }, tooltip: { enabled: false }, centerText: true } },
   plugins: [centerTextPlugin]
 });
 
@@ -196,23 +190,10 @@ const chartHumedad = createGauge(document.getElementById("chartHumedad").getCont
 const chartTemperatura = createGauge(document.getElementById("chartTemperatura").getContext("2d"), "gold");
 const chartAgua = createGauge(document.getElementById("chartAgua").getContext("2d"), "dodgerblue");
 
-// Gráfico combinado multicolor
 const chartCombinado = new Chart(document.getElementById("chartCombinado").getContext("2d"), {
   type: 'doughnut',
-  data: {
-    labels: ["Humedad", "Temp", "Agua", ""],
-    datasets: [{
-      data: [0,0,0,100],
-      backgroundColor: ["saddlebrown", "gold", "dodgerblue", "#eee"],
-      borderWidth: 1
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '70%',
-    plugins: { legend: { position: 'bottom' }, tooltip: { enabled: true } }
-  }
+  data: { labels: ["Humedad", "Temp", "Agua", ""], datasets: [{ data: [0,0,0,100], backgroundColor: ["saddlebrown", "gold", "dodgerblue", "#eee"], borderWidth: 1 }] },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' }, tooltip: { enabled: true } } }
 });
 
 async function cargarDatos() {
@@ -221,7 +202,6 @@ async function cargarDatos() {
     const datos = await res.json();
     const ultimos = datos.slice(-1)[0];
 
-    // Tabla últimos 10 registros
     const tabla = document.getElementById("tablaDatos");
     tabla.innerHTML = "";
     datos.slice(-10).forEach(d => {
@@ -265,4 +245,3 @@ setInterval(cargarDatos, 5000);
 
 </body>
 </html>
-
