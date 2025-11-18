@@ -12,19 +12,14 @@
       padding: 15px;
       margin: 0;
 
-      /* Imagen personalizada de Google Drive */
-      background-image: url('https://drive.google.com/uc?export=view&id=1fDperXh1tNHK5zNRKdeLVcO7Dqx_u7xD'); 
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
+      /* Fondo verde vegetación */
+      background-color: #d4edda;
       color: #155724;
     }
 
     h1, h2 {
       text-align: center;
       margin: 5px 0;
-      text-shadow: 1px 1px 2px #ffffffaa;
     }
 
     .btn {
@@ -62,9 +57,15 @@
       position: relative;
     }
 
-    .chart-box h2 { font-size: 16px; margin-bottom: 5px; }
+    .chart-box h2 {
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
 
-    canvas { width: 100% !important; height: 100% !important; }
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
 
     table {
       width: 100%;
@@ -74,14 +75,31 @@
       margin-bottom: 20px;
     }
 
-    th, td { padding: 6px; border: 1px solid #ddd; text-align: center; }
+    th, td {
+      padding: 6px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
 
-    th { background: #28a745; color: white; }
-    td { color: #155724; }
+    th {
+      background: #28a745;
+      color: white;
+    }
+
+    td {
+      color: #155724;
+    }
 
     @media (max-width: 600px) {
-      #charts { flex-direction: column; align-items: center; }
-      .chart-box { width: 90%; height: 250px; }
+      #charts {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .chart-box {
+        width: 90%;
+        height: 250px;
+      }
     }
   </style>
 </head>
@@ -137,7 +155,6 @@
 <script>
 const API = "https://sistema-de-riego-w2uh.onrender.com/datos";
 
-// Plugin para mostrar porcentaje centrado
 const centerTextPlugin = {
   id: 'centerText',
   afterDraw(chart) {
