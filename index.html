@@ -96,6 +96,56 @@
 <script>
 const API = "https://sistema-de-riego-w2uh.onrender.com/datos";
 
+/* ================================
+      1. CREAR GRÁFICAS
+================================ */
+const ctxH = document.getElementById("chartHumedad").getContext("2d");
+const ctxT = document.getElementById("chartTemperatura").getContext("2d");
+const ctxA = document.getElementById("chartAgua").getContext("2d");
+
+let chartH = new Chart(ctxH, {
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [{
+      label: "Humedad (%)",
+      data: [],
+      borderWidth: 2
+    }]
+  },
+  options: { responsive: true }
+});
+
+let chartT = new Chart(ctxT, {
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [{
+      label: "Temperatura (°C)",
+      data: [],
+      borderWidth: 2
+    }]
+  },
+  options: { responsive: true }
+});
+
+let chartA = new Chart(ctxA, {
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [{
+      label: "Nivel Agua (%)",
+      data: [],
+      borderWidth: 2
+    }]
+  },
+  options: { responsive: true }
+});
+
+
+/* ================================
+      2. GUARDAR CORREO
+================================ */
 async function guardarCorreo() {
   const email = document.getElementById("correo").value;
   const estado = document.getElementById("estadoCorreo");
@@ -107,7 +157,7 @@ async function guardarCorreo() {
   }
 
   try {
-    const res = await fetch("https://sistema-de-riego-w2uh.onrender.com/set-email", {
+    await fetch("https://sistema-de-riego-w2uh.onrender.com/set-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
@@ -115,6 +165,7 @@ async function guardarCorreo() {
 
     estado.innerText = "Correo guardado correctamente.";
     estado.style.color = "green";
+
   } catch (e) {
     estado.innerText = "Error al guardar.";
     estado.style.color = "red";
@@ -122,14 +173,18 @@ async function guardarCorreo() {
 }
 
 
+/* ================================
+      3. CARGAR DATOS Y ACTUALIZAR
+================================ */
 async function cargarDatos() {
   try {
     const res = await fetch(API);
     const datos = await res.json();
+    const ultimos = datos.slice(-15);
     const tabla = document.getElementById("tablaDatos");
 
     tabla.innerHTML = "";
-    datos.slice(-10).forEach(d => {
+    ultimos.forEach(d => {
       tabla.innerHTML += `
         <tr>
           <td>${d.humedadSuelo ?? "-"}</td>
@@ -139,6 +194,21 @@ async function cargarDatos() {
         </tr>
       `;
     });
+
+    /* === ACTUALIZAR GRÁFICAS === */
+    const labels = ultimos.map((_, i) => i + 1);
+
+    chartH.data.labels = labels;
+    chartH.data.datasets[0].data = ultimos.map(d => d.humedadSuelo);
+    chartH.update();
+
+    chartT.data.labels = labels;
+    chartT.data.datasets[0].data = ultimos.map(d => d.temperatura);
+    chartT.update();
+
+    chartA.data.labels = labels;
+    chartA.data.datasets[0].data = ultimos.map(d => d.nivelAgua);
+    chartA.update();
 
   } catch (err) {
     console.error(err);
@@ -151,4 +221,3 @@ setInterval(cargarDatos, 5000);
 
 </body>
 </html>
-
