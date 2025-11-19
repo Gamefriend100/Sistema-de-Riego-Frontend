@@ -51,13 +51,24 @@
       background: #28a745;
       color: white;
     }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 15px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover { background-color: #218838; }
   </style>
 </head>
 <body>
 
 <h1>Sistema de Riego - Indicadores</h1>
 
-<!-- ================= GAUGES ================= -->
 <div id="gauges">
   <div class="gauge-box">
     <h3>Humedad del Suelo (%)</h3>
@@ -75,11 +86,10 @@
   </div>
 </div>
 
-<!-- =================== TABLA =================== -->
 <table>
   <thead>
     <tr>
-      <th>Humedad (%)</th>
+      <th>Humedad Suelo (%)</th>
       <th>Temperatura (°C)</th>
       <th>Nivel Agua (%)</th>
       <th>Fecha</th>
@@ -90,9 +100,12 @@
   </tbody>
 </table>
 
+<div style="text-align:center;">
+  <button onclick="exportExcel()">Exportar a Excel</button>
+  <button onclick="exportCSV()">Exportar a CSV</button>
+</div>
 
 <script>
-// URL DEL BACKEND EN RENDER
 const API = "https://sistema-de-riego-w2uh.onrender.com";
 
 function crearGauge(id, max) {
@@ -126,10 +139,10 @@ async function cargarDatos() {
 
     if (!Array.isArray(datos) || datos.length === 0) return;
 
-    const ultimo = datos[0]; // el backend ya devuelve orden DESC
+    const ultimo = datos[0];
 
     // ACTUALIZAR GAUGES
-    gaugeH.data.datasets[0].value = ultimo.humedad ?? 0;
+    gaugeH.data.datasets[0].value = ultimo.humedadSuelo ?? 0;
     gaugeT.data.datasets[0].value = ultimo.temperatura ?? 0;
     gaugeA.data.datasets[0].value = ultimo.nivelAgua ?? 0;
 
@@ -140,11 +153,10 @@ async function cargarDatos() {
     // ACTUALIZAR TABLA
     const tabla = document.getElementById("tablaDatos");
     tabla.innerHTML = "";
-
     datos.slice(0, 10).forEach(d => {
       tabla.innerHTML += `
         <tr>
-          <td>${d.humedad ?? "-"}</td>
+          <td>${d.humedadSuelo ?? "-"}</td>
           <td>${d.temperatura ?? "-"}</td>
           <td>${d.nivelAgua ?? "-"}</td>
           <td>${new Date(d.fecha).toLocaleString()}</td>
@@ -157,10 +169,17 @@ async function cargarDatos() {
   }
 }
 
+function exportExcel() {
+  window.open(`${API}/export/excel`, "_blank");
+}
+
+function exportCSV() {
+  window.open(`${API}/export/csv`, "_blank");
+}
+
 cargarDatos();
 setInterval(cargarDatos, 5000);
 </script>
 
 </body>
 </html>
-
