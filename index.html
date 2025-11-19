@@ -2,118 +2,69 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema ESP32 · Gráficos Vegetación</title>
+  <title>Sistema ESP32 · Indicadores Gauge</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js 3.x compatible -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
+
+  <!-- Plugin Gauge compatible -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-gauge@0.3.0/dist/chartjs-gauge.min.js"></script>
 
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 15px;
-      margin: 0;
       background-color: #d4edda;
-      color: #155724;
-    }
-    h1, h2 { text-align: center; margin: 5px 0; }
-
-    .btn { padding: 8px 12px; margin: 5px 5px 15px 5px; border: none; cursor: pointer; color: white; border-radius: 5px; font-size: 14px; }
-    .excel { background: #28a745; }
-    .csv { background: #17a2b8; }
-
-    #gauges, #charts { 
-      display: flex; 
-      flex-wrap: wrap; 
-      justify-content: center; 
-      gap: 20px; 
-      margin-bottom: 30px; 
     }
 
-    .gauge-box, .chart-box {
-      background: rgba(255, 255, 255, 0.85);
-      padding: 10px;
-      border-radius: 10px;
-      width: 250px;
-      height: 250px;
+    h1 { text-align: center; }
+
+    #gauges {
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      flex-wrap: wrap;
       justify-content: center;
-      box-sizing: border-box;
+      gap: 20px;
+      margin-bottom: 20px;
     }
 
-    table {
-      width: 100%; border-collapse: collapse;
-      background: rgba(255,255,255,0.85); font-size: 14px; margin-bottom: 20px;
+    .gauge-box {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      width: 260px;
+      text-align: center;
     }
-    th, td { padding: 6px; border: 1px solid #ddd; text-align: center; }
-    th { background: #28a745; color: white; }
   </style>
 </head>
 <body>
 
-<h1>Sistema de Riego</h1>
+<h1>Sistema de Riego - Indicadores</h1>
 
-<!-- =================== CORREO ===================== -->
-<div style="background:white;padding:15px;border-radius:10px;max-width:400px;margin:auto;margin-bottom:20px;">
-  <h3>📧 Correo para Notificaciones</h3>
-  <input id="correo" type="email" placeholder="ejemplo@gmail.com" 
-         style="width:100%;padding:8px;border:1px solid #ccc;border-radius:5px;font-size:14px;">
-  <button onclick="guardarCorreo()" 
-          style="margin-top:10px;width:100%;padding:10px;background:#28a745;color:white;border:none;border-radius:5px;">
-    Guardar correo
-  </button>
-  <p id="estadoCorreo" style="text-align:center;margin-top:8px;font-size:13px;"></p>
-</div>
-
-<div>
-  <a href="https://sistema-de-riego-w2uh.onrender.com/export/excel">
-    <button class="btn excel">📘 Descargar Excel</button>
-  </a>
-  <a href="https://sistema-de-riego-w2uh.onrender.com/export/csv">
-    <button class="btn csv">📄 Descargar CSV</button>
-  </a>
-</div>
-
-<!-- =================== GAUGES ===================== -->
-<h2>Indicadores en Tiempo Real</h2>
+<!-- ================= GAUGES ================= -->
 <div id="gauges">
   <div class="gauge-box">
-    <h3>Humedad</h3>
+    <h3>Humedad del Suelo</h3>
     <canvas id="gaugeHumedad"></canvas>
   </div>
+
   <div class="gauge-box">
     <h3>Temperatura</h3>
     <canvas id="gaugeTemperatura"></canvas>
   </div>
+
   <div class="gauge-box">
     <h3>Nivel de Agua</h3>
     <canvas id="gaugeAgua"></canvas>
   </div>
 </div>
 
-<!-- =================== CHARTS ===================== -->
-<div id="charts">
-  <div class="chart-box">
-    <h2>Humedad del Suelo</h2>
-    <canvas id="chartHumedad"></canvas>
-  </div>
-  <div class="chart-box">
-    <h2>Temperatura</h2>
-    <canvas id="chartTemperatura"></canvas>
-  </div>
-  <div class="chart-box">
-    <h2>Nivel de Agua</h2>
-    <canvas id="chartAgua"></canvas>
-  </div>
-</div>
-
+<!-- =================== TABLA =================== -->
 <table>
   <thead>
     <tr>
       <th>Humedad (%)</th>
       <th>Temperatura (°C)</th>
-      <th>Nivel de Agua (%)</th>
+      <th>Nivel Agua (%)</th>
       <th>Fecha</th>
     </tr>
   </thead>
@@ -122,117 +73,76 @@
   </tbody>
 </table>
 
+
 <script>
 const API = "https://sistema-de-riego-w2uh.onrender.com/datos";
 
-/* ============================================
-      CREACIÓN DE GAUGES
-============================================= */
-function crearGauge(ctx, max = 100) {
+/* ===========================
+   CONFIGURACIÓN DE GAUGES
+   =========================== */
+function crearGauge(id, max) {
+  const ctx = document.getElementById(id).getContext("2d");
   return new Chart(ctx, {
-    type: 'gauge',
+    type: "gauge",
     data: {
       datasets: [{
         value: 0,
         min: 0,
         max: max,
-        data: [25, 50, 75, 100]
+        backgroundColor: ["#28a745", "#ffc107", "#dc3545"],
+        borderWidth: 2
       }]
     },
     options: {
       responsive: true,
-      needle: { radiusPercentage: 0.6 },
-      valueLabel: { formatter: (v) => Math.round(v) }
+      needle: { radiusPercentage: 2, widthPercentage: 3, lengthPercentage: 80 }
     }
   });
 }
 
-const gaugeH = crearGauge(document.getElementById("gaugeHumedad"));
-const gaugeT = crearGauge(document.getElementById("gaugeTemperatura"), 60);
-const gaugeA = crearGauge(document.getElementById("gaugeAgua"));
+let gaugeH = crearGauge("gaugeHumedad", 100);
+let gaugeT = crearGauge("gaugeTemperatura", 60);
+let gaugeA = crearGauge("gaugeAgua", 100);
 
-/* ============================================
-      GRÁFICAS LINEALES
-============================================= */
-const ctxH = document.getElementById("chartHumedad").getContext("2d");
-const ctxT = document.getElementById("chartTemperatura").getContext("2d");
-const ctxA = document.getElementById("chartAgua").getContext("2d");
-
-let chartH = new Chart(ctxH, { type: "line", data:{labels:[],datasets:[{label:"Humedad (%)",data:[],borderWidth:2}]}, options:{responsive:true}});
-let chartT = new Chart(ctxT, { type: "line", data:{labels:[],datasets:[{label:"Temperatura (°C)",data:[],borderWidth:2}]}, options:{responsive:true}});
-let chartA = new Chart(ctxA, { type: "line", data:{labels:[],datasets:[{label:"Nivel de Agua (%)",data:[],borderWidth:2}]}, options:{responsive:true}});
-
-/* ============================================
-      GUARDAR CORREO
-============================================= */
-async function guardarCorreo() {
-  const email = document.getElementById("correo").value;
-  const estado = document.getElementById("estadoCorreo");
-
-  if (!email.includes("@")) {
-    estado.innerText = "Correo no válido.";
-    estado.style.color = "red";
-    return;
-  }
-
-  await fetch("https://sistema-de-riego-w2uh.onrender.com/set-email", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email })
-  });
-
-  estado.innerText = "Correo guardado correctamente.";
-  estado.style.color = "green";
-}
-
-
-/* ============================================
-      CARGAR DATOS Y ACTUALIZAR TODO
-============================================= */
+/* ===========================
+   FUNCIÓN PARA CARGAR DATOS
+   =========================== */
 async function cargarDatos() {
-  const res = await fetch(API);
-  const datos = await res.json();
-  const ultimos = datos.slice(-15);
-  const tabla = document.getElementById("tablaDatos");
+  try {
+    const res = await fetch(API);
+    const datos = await res.json();
 
-  tabla.innerHTML = "";
-  ultimos.forEach(d => {
-    tabla.innerHTML += `
-      <tr>
-        <td>${d.humedadSuelo ?? "-"}</td>
-        <td>${d.temperatura ?? "-"}</td>
-        <td>${d.nivelAgua ?? "-"}</td>
-        <td>${new Date(d.fecha).toLocaleString()}</td>
-      </tr>
-    `;
-  });
+    if (!Array.isArray(datos) || datos.length === 0) return;
 
-  // === ACTUALIZAR GAUGES ===
-  const u = ultimos.slice(-1)[0];
-  if (u) {
-    gaugeH.data.datasets[0].value = u.humedadSuelo || 0;
-    gaugeT.data.datasets[0].value = u.temperatura || 0;
-    gaugeA.data.datasets[0].value = u.nivelAgua || 0;
+    const ultimo = datos[datos.length - 1];
+
+    // ACTUALIZAR GAUGES
+    gaugeH.data.datasets[0].value = ultimo.humedadSuelo || 0;
+    gaugeT.data.datasets[0].value = ultimo.temperatura || 0;
+    gaugeA.data.datasets[0].value = ultimo.nivelAgua || 0;
 
     gaugeH.update();
     gaugeT.update();
     gaugeA.update();
+
+    // ACTUALIZAR TABLA
+    const tabla = document.getElementById("tablaDatos");
+    tabla.innerHTML = "";
+
+    datos.slice(-10).forEach(d => {
+      tabla.innerHTML += `
+        <tr>
+          <td>${d.humedadSuelo ?? "-"}</td>
+          <td>${d.temperatura ?? "-"}</td>
+          <td>${d.nivelAgua ?? "-"}</td>
+          <td>${new Date(d.fecha).toLocaleString()}</td>
+        </tr>
+      `;
+    });
+
+  } catch (e) {
+    console.error("Error cargando datos:", e);
   }
-
-  // === ACTUALIZAR GRÁFICAS ===
-  const labels = ultimos.map((_, i) => i + 1);
-
-  chartH.data.labels = labels;
-  chartH.data.datasets[0].data = ultimos.map(d => d.humedadSuelo);
-  chartH.update();
-
-  chartT.data.labels = labels;
-  chartT.data.datasets[0].data = ultimos.map(d => d.temperatura);
-  chartT.update();
-
-  chartA.data.labels = labels;
-  chartA.data.datasets[0].data = ultimos.map(d => d.nivelAgua);
-  chartA.update();
 }
 
 cargarDatos();
